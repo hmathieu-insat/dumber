@@ -392,6 +392,10 @@ void Tasks::MoveTask(void *arg) {
     }
 }
 
+/**
+ * @brief Thread handling the checking of battery level of the robot
+ * 
+ */
 void Tasks::CheckBatteryTask(void *arg) {
     int rs;
     Message * msgReceived;
