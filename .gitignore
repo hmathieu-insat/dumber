@@ -67,4 +67,4 @@ GUI
 /software/raspberry/testeur/testeur/dist/
 /software/simulateur/build/
 /software/simulateur/dist/
-.vscode/c_cpp_properties.json
+.vscode/**

@@ -66,6 +66,7 @@ private:
     ComRobot robot;
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+    int errCount = 0;
     
     /**********************************************************************/
     /* Tasks                                                              */
@@ -137,6 +138,11 @@ private:
      * @brief Thread checking the battery level of the robot.
      */
     void CheckBatteryTask(void *arg);
+
+    /**
+     * @brief Method checking if the connexion with the robot has been lost.
+     */
+    void CheckConnectionRobot(int ack);
     
     /**********************************************************************/
     /* Queue services                                                     */
