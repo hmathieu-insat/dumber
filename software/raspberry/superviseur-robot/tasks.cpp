@@ -253,6 +253,8 @@ void Tasks::SendToMonTask(void* arg) {
  */
 void Tasks::ReceiveFromMonTask(void *arg) {
     Message *msgRcv;
+    int rs;
+    int cpMove;
     
     cout << "Start " << __PRETTY_FUNCTION__ << endl << flush;
     // Synchronization barrier (waiting that all tasks are starting)
@@ -271,6 +273,23 @@ void Tasks::ReceiveFromMonTask(void *arg) {
         if (msgRcv->CompareID(MESSAGE_MONITOR_LOST)) {
             delete(msgRcv);
             cout << "Connection to the monitor has been lost" << endl << flush;
+            rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+            rs = robotStarted;
+            rt_mutex_release(&mutex_robotStarted);
+            if (rs == 1) {
+                rt_mutex_acquire(&mutex_robot, TM_INFINITE);
+                robot.Write(robot.Reset());
+                rt_mutex_release(&mutex_robot);
+            }
+            this->Stop();
+            
+            // Reset supervisor to initial state
+            rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+            robotStarted = 0;
+            rt_mutex_release(&mutex_robotStarted);
+            rt_mutex_acquire(&mutex_move, TM_INFINITE);
+            move = 31;
+            rt_mutex_release(&mutex_move);
             exit(-1);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) {
             rt_sem_v(&sem_openComRobot);
