@@ -462,11 +462,6 @@ void Tasks::CheckBatteryTask(void *arg) {
         if (rs == 1) {
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
             msgReceived = robot.Write(robot.GetBattery());
-            if (*msgReceived == MESSAGE_ANSWER_ROBOT_ERROR || *msgReceived==MESSAGE_ANSWER_ROBOT_TIMEOUT) {
-                Tasks::CheckConnectionRobot(-1);
-            } else {
-                Tasks::CheckConnectionRobot(1);
-            }
             rt_mutex_release(&mutex_robot);
             WriteInQueue(&q_messageToMon, msgReceived);
         }
@@ -485,7 +480,7 @@ void Tasks::CheckConnectionRobot(int ack) {
     }
     if (errCount > 3)
     {
-        cout >> "Connexion with robot was lost" << endl << flush;
+        cout << "Connexion with robot was lost" << endl << flush;
     }
     
 }
