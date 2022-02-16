@@ -433,7 +433,7 @@ void Tasks::MoveTask(void *arg) {
             if (*msgReceived == MESSAGE_ANSWER_ROBOT_ERROR || *msgReceived == MESSAGE_ANSWER_ROBOT_TIMEOUT || *msgReceived == MESSAGE_ANSWER_ROBOT_UNKNOWN_COMMAND) {
                 Tasks::CheckConnectionRobot(1);
             } else {
-                Tasks::CheckConnectionRobot(-1);
+                Tasks::CheckConnectionRobot(0);
             }
             rt_mutex_release(&mutex_robot);
         }
