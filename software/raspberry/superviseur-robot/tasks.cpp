@@ -381,6 +381,7 @@ void Tasks::StartRobotTask(void *arg) {
 void Tasks::MoveTask(void *arg) {
     int rs;
     int cpMove;
+    Message* msgReceived;
     
     cout << "Start " << __PRETTY_FUNCTION__ << endl << flush;
     // Synchronization barrier (waiting that all tasks are starting)
@@ -405,7 +406,12 @@ void Tasks::MoveTask(void *arg) {
             cout << " move: " << cpMove << endl << flush;
             
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
-            robot.Write(new Message((MessageID)cpMove));
+            msgReceived = robot.Write(new Message((MessageID)cpMove));
+            if (*msgReceived == MESSAGE_ANSWER_ROBOT_ERROR || *msgReceived == MESSAGE_ANSWER_ROBOT_TIMEOUT || *msgReceived == MESSAGE_ANSWER_ROBOT_UNKNOWN_COMMAND) {
+                Tasks::CheckConnectionRobot(1);
+            } else {
+                Tasks::CheckConnectionRobot(-1);
+            }
             rt_mutex_release(&mutex_robot);
         }
     }
@@ -431,6 +437,22 @@ void Tasks::CheckBatteryTask(void *arg) {
             rt_mutex_release(&mutex_robot);
             WriteInQueue(&q_messageToMon, msgReceived);
         }
+    }
+}
+
+/**
+ * @brief Method checking if the connexion with the robot has been lost.
+ */
+void Tasks::CheckConnectionRobot(int ack) {
+    if (ack > 0)
+    {
+        errCount++;
+    } else {
+        errCount = 0;
+    }
+    if (errCount > 3)
+    {
+        cout << "Connexion with robot was lost" << endl << flush;
     }
 }
 
