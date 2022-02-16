@@ -470,19 +470,37 @@ void Tasks::CheckBatteryTask(void *arg) {
 
 /**
  * @brief Method checking if the connexion with the robot has been lost.
+ *
  */
 void Tasks::CheckConnectionRobot(int ack) {
-    if (ack > 0)
-    {
+    if (ack > 0) {
         errCount++;
     } else {
         errCount = 0;
     }
-    if (errCount > 3)
-    {
-        cout << "Connexion with robot was lost" << endl << flush;
+    if (errCount > 3) {
+        Tasks::HandleRobotConnexionLoss();
+        cout << "Connexion with robot lost" << endl
+             << flush;
     }
-    
+}
+
+void Tasks::HandleRobotConnexionLoss(void *arg) {
+    monitor.Write(&Message(MESSAGE_ROBOT_COM_CLOSE));
+    // Close connexion with robot
+    robot.Close();
+
+
+    //Reset connexion watchdog counter
+    Tasks::CheckConnectionRobot(0);
+
+    // Reset supervisor to initial state
+    rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+    robotStarted = 0;
+    rt_mutex_release(&mutex_robotStarted);
+    rt_mutex_acquire(&mutex_move, TM_INFINITE);
+    move = 31;
+    rt_mutex_release(&mutex_move);
 }
 
 /**
