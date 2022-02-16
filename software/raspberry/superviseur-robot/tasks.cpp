@@ -482,6 +482,14 @@ void Tasks::CheckConnectionRobot(int ack) {
     {
         cout << "Connexion with robot was lost" << endl << flush;
     }
+}
+
+void Tasks::HandleRobotConnexionLoss(void *arg) {
+    ComMonitor::Write(MESSAGE_MONITOR_LOST);
+    if (ComRobot::Close())
+    {
+        cerr << "Failed to close connexion with robot" << endl << flush;
+    }
     
 }
 
