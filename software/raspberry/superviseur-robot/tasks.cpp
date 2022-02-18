@@ -469,8 +469,9 @@ void Tasks::CheckBatteryTask(void *arg) {
 }
 
 /**
- * @brief Method checking if the connexion with the robot has been lost.
+ * @brief  Method checking if the connexion with the robot has been lost. Calls {@code HandleRobotConnexionLoss} if this case
  *
+ * @param ack if == 1 increases the counter ; if == 0 resets the watchdog counter
  */
 void Tasks::CheckConnectionRobot(int ack) {
     if (ack > 0) {
@@ -490,8 +491,7 @@ void Tasks::HandleRobotConnexionLoss(void *arg) {
     // Close connexion with robot
     robot.Close();
 
-
-    //Reset connexion watchdog counter
+    // Reset connexion watchdog counter
     Tasks::CheckConnectionRobot(0);
 
     // Reset supervisor to initial state
@@ -499,7 +499,7 @@ void Tasks::HandleRobotConnexionLoss(void *arg) {
     robotStarted = 0;
     rt_mutex_release(&mutex_robotStarted);
     rt_mutex_acquire(&mutex_move, TM_INFINITE);
-    move = 31;
+    move = MESSAGE_ROBOT_STOP;
     rt_mutex_release(&mutex_move);
 }
 
