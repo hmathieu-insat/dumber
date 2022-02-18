@@ -305,7 +305,7 @@ void Tasks::ReceiveFromMonTask(void *arg) {
             robotStarted = 0;
             rt_mutex_release(&mutex_robotStarted);
             rt_mutex_acquire(&mutex_move, TM_INFINITE);
-            move = 31;
+            move = MESSAGE_ROBOT_STOP;
             rt_mutex_release(&mutex_move);
             exit(-1);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) {
@@ -466,7 +466,6 @@ void Tasks::MoveTask(void *arg) {
 
     while (1) {
         rt_task_wait_period(NULL);
-        cout << "Periodic movement update";
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
         rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
@@ -482,7 +481,7 @@ void Tasks::MoveTask(void *arg) {
             if (*msgReceived == MESSAGE_ANSWER_ROBOT_ERROR || *msgReceived == MESSAGE_ANSWER_ROBOT_TIMEOUT || *msgReceived == MESSAGE_ANSWER_ROBOT_UNKNOWN_COMMAND) {
                 Tasks::CheckConnectionRobot(1);
             } else {
-                Tasks::CheckConnectionRobot(-1);
+                Tasks::CheckConnectionRobot(0);
             }
             rt_mutex_release(&mutex_robot);
         }
@@ -513,19 +512,43 @@ void Tasks::CheckBatteryTask(void *arg) {
 }
 
 /**
- * @brief Method checking if the connexion with the robot has been lost.
+ * @brief  Method checking if the connexion with the robot has been lost. Calls {@code HandleRobotConnexionLoss} if this case
+ *
+ * @param ack if == 1 increases the counter ; if == 0 resets the watchdog counter
  */
 void Tasks::CheckConnectionRobot(int ack) {
-    if (ack > 0)
-    {
+    if (ack > 0) {
         errCount++;
     } else {
         errCount = 0;
     }
-    if (errCount > 3)
-    {
-        cout << "Connexion with robot was lost" << endl << flush;
+    if (errCount > 3) {
+        cout << "Connexion with robot lost" << endl << flush;
+        Tasks::HandleRobotConnexionLoss();
     }
+}
+
+void Tasks::HandleRobotConnexionLoss() {
+    // Should notify the monitor that the communication with the robot has been lost
+    // The MESSAGE_ROBOT_COM_CLOSE is not handled by the Write method 
+    /*rt_mutex_acquire(&mutex_monitor, TM_INFINITE);
+    Message msg = Message(MESSAGE_ROBOT_COM_CLOSE);
+    monitor.Write(&msg);
+    rt_mutex_release(&mutex_monitor);*/
+
+    // Close connexion with robot
+    robot.Close();
+
+    // Reset connexion watchdog counter
+    Tasks::CheckConnectionRobot(0);
+
+    // Reset supervisor to initial state
+    rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+    robotStarted = 0;
+    rt_mutex_release(&mutex_robotStarted);
+    rt_mutex_acquire(&mutex_move, TM_INFINITE);
+    move = MESSAGE_ROBOT_STOP;
+    rt_mutex_release(&mutex_move);
 }
 
 /**

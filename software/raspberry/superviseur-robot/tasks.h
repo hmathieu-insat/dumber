@@ -154,6 +154,8 @@ private:
      * @brief Method checking if the connexion with the robot has been lost.
      */
     void CheckConnectionRobot(int ack);
+
+    void HandleRobotConnexionLoss();
     
     /**********************************************************************/
     /* Queue services                                                     */
