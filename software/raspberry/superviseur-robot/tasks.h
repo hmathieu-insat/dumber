@@ -66,7 +66,8 @@ private:
     ComRobot robot;
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
-     int errCount = 0;
+    int errCount = 0;
+    bool isWithWD = false;
      
     /**********************************************************************/
     /* Tasks                                                              */
@@ -78,6 +79,7 @@ private:
     RT_TASK th_startRobot;
     RT_TASK th_move;
     RT_TASK th_checkBattery;
+    RT_TASK th_reloadWD;
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -86,6 +88,7 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+    RT_MUTEX mutex_isWithWD;
 
     /**********************************************************************/
     /* Semaphores                                                         */
@@ -94,6 +97,7 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
+    RT_SEM sem_reloadWD;
 
     /**********************************************************************/
     /* Message queues                                                     */
@@ -133,6 +137,11 @@ private:
      * @brief Thread handling control of the robot.
      */
     void MoveTask(void *arg);
+    
+    /**
+    * @brief Thread reloading the watchdog periodically.
+    */
+    void ReloadWatchDogTask(void *arg);
     
     /**
      * @brief Thread checking the battery level of the robot.
